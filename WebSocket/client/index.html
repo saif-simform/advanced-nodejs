@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Socket</title>
+  </head>
+  <body>
+    <h1>Chatting App</h1>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+      "
+    >
+      <input type="text" id="message" placeholder="Enter Message" />
+      <button id="sendBtn">Send</button>
+      <input type="file" onchange="upload(this.files)" />
+      <div id="messages"></div>
+    </div>
+
+    <!-- Loading socket.io script in frontend, you can get it from network tab -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      // To build a socket connection
+      const socket = io();
+
+      const messageInput = document.getElementById("message");
+      const sendBtn = document.getElementById("sendBtn");
+      const allMessages = document.getElementById("messages");
+
+      sendBtn.addEventListener("click", (e) => {
+        const message = messageInput.value;
+
+        //To send message to the server
+        // socket.emit(event_name, data);
+
+        socket.emit("user-message", message);
+      });
+
+      //Read message from server
+      socket.on("server-message", (message) => {
+        const p = document.createElement("p");
+        p.innerText = message;
+        allMessages.appendChild(p);
+      });
+
+      function upload(files) {
+        const file = files[0];
+        // console.log("file", file);
+
+        //Read file as an array buffer
+        const reader = new FileReader();
+
+        reader.onload = function () {
+          const arrayBuffer = this.result;
+          // console.log("arrayBuffer", arrayBuffer);
+          socket.emit("upload", arrayBuffer, file.name, (status) => {
+            console.log(status);
+          });
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+    </script>
+  </body>
+</html>
